@@ -321,30 +321,18 @@ async function layUrlCloudflare() {
 
 async function vaoHeThong(event) {
 
-
     if (event) {
-
         event.preventDefault();
-
     }
 
-
     const status =
-        document.getElementById(
-            "status"
-        );
-
+        document.getElementById("status");
 
     const urlDisplay =
-        document.getElementById(
-            "url"
-        );
-
+        document.getElementById("url");
 
     const button =
-        document.getElementById(
-            "btnVaoHeThong"
-        );
+        document.getElementById("btnVaoHeThong");
 
 
     // -------------------------------------------------
@@ -354,15 +342,15 @@ async function vaoHeThong(event) {
     status.innerHTML =
         "🔄 Đang lấy địa chỉ hệ thống...";
 
-
     button.style.pointerEvents =
         "none";
 
 
     try {
 
-
-        // Lấy URL mới nhất
+        // -------------------------------------------------
+        // LẤY URL CLOUDFLARE MỚI NHẤT
+        // -------------------------------------------------
 
         const url =
             await layUrlCloudflare();
@@ -374,34 +362,51 @@ async function vaoHeThong(event) {
         );
 
 
-        // Hiển thị URL
+        // -------------------------------------------------
+        // HIỂN THỊ URL
+        // -------------------------------------------------
 
         urlDisplay.textContent =
             url;
 
 
         // -------------------------------------------------
-        // KIỂM TRA URL
+        // TẠO ĐỊA CHỈ LOGIN
+        // -------------------------------------------------
+
+        const loginUrl =
+            url.replace(/\/+$/, "") +
+            "/login";
+
+
+        console.log(
+            "Login URL:",
+            loginUrl
+        );
+
+
+        // -------------------------------------------------
+        // THÔNG BÁO
         // -------------------------------------------------
 
         status.innerHTML =
-            "✅ Đã lấy được địa chỉ hệ thống";
+            "✅ Đang mở trang đăng nhập...";
 
 
         // -------------------------------------------------
-        // MỞ NODE-RED
+        // MỞ LOGIN
         // -------------------------------------------------
 
         window.location.href =
-            url;
+            loginUrl;
 
 
     }
 
     catch (error) {
 
-
         console.error(
+            "Lỗi:",
             error
         );
 
@@ -428,7 +433,9 @@ async function vaoHeThong(event) {
 
             "2. url.txt có chứa URL Cloudflare không\n" +
 
-            "3. Cloudflare Quick Tunnel đã chạy chưa"
+            "3. Cloudflare Quick Tunnel đã chạy chưa\n" +
+
+            "4. Node-RED đang chạy tại localhost:1880"
 
         );
 
