@@ -12,11 +12,13 @@
 
     <title>Quản lý kho</title>
 
+
     <style>
 
         * {
             box-sizing: border-box;
         }
+
 
         body {
 
@@ -138,6 +140,15 @@
         }
 
 
+        .btn:disabled {
+
+            opacity: 0.6;
+
+            cursor: wait;
+
+        }
+
+
         .status {
 
             margin-top: 20px;
@@ -151,6 +162,8 @@
             color: #6b7280;
 
             font-size: 14px;
+
+            word-break: break-word;
         }
 
 
@@ -163,6 +176,8 @@
             color: #9ca3af;
 
             word-break: break-all;
+
+            line-height: 1.5;
         }
 
 
@@ -201,21 +216,20 @@
     </div>
 
 
-    <a
+    <button
         id="btnVaoHeThong"
         class="btn"
-        href="#"
-        onclick="vaoHeThong(event); return false;"
+        type="button"
     >
         🚀 VÀO HỆ THỐNG
-    </a>
+    </button>
 
 
     <div
         id="status"
         class="status"
     >
-        🔄 Đang chờ kết nối...
+        🔄 Đang kiểm tra kết nối...
     </div>
 
 
@@ -238,26 +252,48 @@
 
 
 // =====================================================
+// CẤU HÌNH
+// =====================================================
+
+const DASHBOARD_PATH = "/dashboard";
+
+const LOGIN_PATH = "/dashboard/login";
+
+
+// =====================================================
+// LẤY PHẦN TỬ GIAO DIỆN
+// =====================================================
+
+const statusElement =
+    document.getElementById("status");
+
+const urlElement =
+    document.getElementById("url");
+
+const buttonElement =
+    document.getElementById("btnVaoHeThong");
+
+
+// =====================================================
 // HÀM LẤY URL CLOUDFLARE TỪ url.txt
 // =====================================================
 
 async function layUrlCloudflare() {
 
-
     try {
 
+        const response =
+            await fetch(
+                "./url.txt?t=" + Date.now(),
+                {
+                    cache: "no-store"
+                }
+            );
 
-        const response = await fetch(
 
-            "./url.txt?t=" +
-            Date.now(),
-
-            {
-                cache: "no-store"
-            }
-
-        );
-
+        // -------------------------------------------------
+        // KIỂM TRA HTTP
+        // -------------------------------------------------
 
         if (!response.ok) {
 
@@ -269,9 +305,21 @@ async function layUrlCloudflare() {
         }
 
 
-        const url =
-            (await response.text()).trim();
+        // -------------------------------------------------
+        // ĐỌC NỘI DUNG
+        // -------------------------------------------------
 
+        const text =
+            await response.text();
+
+
+        const url =
+            text.trim();
+
+
+        // -------------------------------------------------
+        // KIỂM TRA TRỐNG
+        // -------------------------------------------------
 
         if (!url) {
 
@@ -282,10 +330,12 @@ async function layUrlCloudflare() {
         }
 
 
+        // -------------------------------------------------
+        // KIỂM TRA HTTPS
+        // -------------------------------------------------
+
         if (
-            !url.startsWith(
-                "https://"
-            )
+            !url.startsWith("https://")
         ) {
 
             throw new Error(
@@ -295,15 +345,21 @@ async function layUrlCloudflare() {
         }
 
 
-        return url;
+        // -------------------------------------------------
+        // LOẠI BỎ / CUỐI
+        // -------------------------------------------------
 
+        return url.replace(
+            /\/+$/,
+            ""
+        );
 
     }
 
     catch (error) {
 
         console.error(
-            "Lỗi lấy URL:",
+            "Lỗi lấy URL Cloudflare:",
             error
         );
 
@@ -314,98 +370,113 @@ async function layUrlCloudflare() {
 }
 
 
+// =====================================================
+// TẠO URL LOGIN DASHBOARD
+// =====================================================
+
+function taoLoginUrl(cloudflareUrl) {
+
+    return (
+        cloudflareUrl +
+        LOGIN_PATH
+    );
+
+}
+
 
 // =====================================================
 // NÚT VÀO HỆ THỐNG
 // =====================================================
 
-async function vaoHeThong(event) {
-
-    if (event) {
-        event.preventDefault();
-    }
-
-    const status =
-        document.getElementById("status");
-
-    const urlDisplay =
-        document.getElementById("url");
-
-    const button =
-        document.getElementById("btnVaoHeThong");
+async function vaoHeThong() {
 
 
     // -------------------------------------------------
-    // ĐANG KẾT NỐI
+    // TRẠNG THÁI
     // -------------------------------------------------
 
-    status.innerHTML =
+    statusElement.innerHTML =
         "🔄 Đang lấy địa chỉ hệ thống...";
 
-    button.style.pointerEvents =
-        "none";
+
+    urlElement.textContent =
+        "";
+
+
+    // -------------------------------------------------
+    // KHÓA NÚT
+    // -------------------------------------------------
+
+    buttonElement.disabled =
+        true;
 
 
     try {
 
-        // -------------------------------------------------
-        // LẤY URL CLOUDFLARE MỚI NHẤT
-        // -------------------------------------------------
 
-        const url =
+        // =================================================
+        // LẤY URL CLOUDFLARE
+        // =================================================
+
+        const cloudflareUrl =
             await layUrlCloudflare();
 
 
         console.log(
             "Cloudflare URL:",
-            url
+            cloudflareUrl
         );
 
 
-        // -------------------------------------------------
-        // HIỂN THỊ URL
-        // -------------------------------------------------
+        // =================================================
+        // HIỂN THỊ URL CLOUDFLARE
+        // =================================================
 
-        urlDisplay.textContent =
-            url;
+        urlElement.textContent =
+            "Cloudflare: " +
+            cloudflareUrl;
 
 
- // -------------------------------------------------
-// LẤY ĐỊA CHỈ DASHBOARD NODE-RED
-// -------------------------------------------------
-
-    // -------------------------------------------------
-// TẠO URL TRANG LOGIN DASHBOARD
-// -------------------------------------------------
-
-        // -------------------------------------------------
-// TẠO URL LOGIN DASHBOARD
-// -------------------------------------------------
+        // =================================================
+        // TẠO URL LOGIN
+        // =================================================
 
         const loginUrl =
-            url.replace(/\/+$/, "") +
-            "/dashboard/login";
-        
+            taoLoginUrl(
+                cloudflareUrl
+            );
+
+
         console.log(
             "Login URL:",
             loginUrl
         );
-        
-        // -------------------------------------------------
-        // THÔNG BÁO
-        // -------------------------------------------------
-        
-        status.innerHTML =
+
+
+        // =================================================
+        // HIỂN THỊ TRẠNG THÁI
+        // =================================================
+
+        statusElement.innerHTML =
             "✅ Đang mở trang đăng nhập...";
-        
-        // -------------------------------------------------
-        // MỞ LOGIN DASHBOARD
-        // -------------------------------------------------
-        
+
+
+        // =================================================
+        // CHUYỂN SANG DASHBOARD LOGIN
+        // =================================================
+
         window.location.href =
             loginUrl;
 
+
+    }
+
     catch (error) {
+
+
+        // =================================================
+        // XỬ LÝ LỖI
+        // =================================================
 
         console.error(
             "Lỗi:",
@@ -413,11 +484,11 @@ async function vaoHeThong(event) {
         );
 
 
-        status.innerHTML =
+        statusElement.innerHTML =
             "❌ Không lấy được địa chỉ hệ thống";
 
 
-        urlDisplay.textContent =
+        urlElement.textContent =
             "";
 
 
@@ -443,45 +514,64 @@ async function vaoHeThong(event) {
 
     }
 
+
     finally {
 
 
-        button.style.pointerEvents =
-            "auto";
+        // =================================================
+        // MỞ KHÓA NÚT
+        // =================================================
+
+        buttonElement.disabled =
+            false;
 
     }
 
 }
 
 
-
 // =====================================================
-// KIỂM TRA url.txt KHI MỞ TRANG
+// KIỂM TRA URL KHI MỞ GITHUB PAGES
 // =====================================================
 
 async function kiemTraTrang() {
 
 
-    const status =
-        document.getElementById(
-            "status"
-        );
+    statusElement.innerHTML =
+        "🔄 Đang kiểm tra địa chỉ hệ thống...";
 
 
     try {
 
 
-        const url =
+        // =================================================
+        // LẤY URL
+        // =================================================
+
+        const cloudflareUrl =
             await layUrlCloudflare();
 
 
         console.log(
             "URL Cloudflare hiện tại:",
-            url
+            cloudflareUrl
         );
 
 
-        status.innerHTML =
+        // =================================================
+        // HIỂN THỊ URL
+        // =================================================
+
+        urlElement.textContent =
+            "Cloudflare: " +
+            cloudflareUrl;
+
+
+        // =================================================
+        // HIỂN THỊ TRẠNG THÁI
+        // =================================================
+
+        statusElement.innerHTML =
             "🟢 Hệ thống sẵn sàng";
 
 
@@ -496,18 +586,30 @@ async function kiemTraTrang() {
         );
 
 
-        status.innerHTML =
+        statusElement.innerHTML =
             "🟡 Chưa có địa chỉ Cloudflare";
 
+
+        urlElement.textContent =
+            "";
 
     }
 
 }
 
 
+// =====================================================
+// GÁN SỰ KIỆN CHO NÚT
+// =====================================================
+
+buttonElement.addEventListener(
+    "click",
+    vaoHeThong
+);
+
 
 // =====================================================
-// CHẠY KHI MỞ TRANG
+// CHẠY KHI TRANG ĐƯỢC MỞ
 // =====================================================
 
 window.addEventListener(
