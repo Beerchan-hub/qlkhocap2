@@ -1,83 +1,515 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Quản lý kho</title>
 
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f1f5f9;
 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-
-            min-height: 100vh;
+        * {
+            box-sizing: border-box;
         }
 
+        body {
+
+            margin: 0;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #eaf3ff,
+                    #f7f9fc
+                );
+
+            min-height: 100vh;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            padding: 20px;
+        }
+
+
         .container {
+
+            width: 100%;
+
+            max-width: 480px;
+
             background: white;
-            padding: 40px;
+
             border-radius: 20px;
+
+            padding: 40px 30px;
 
             text-align: center;
 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            box-shadow:
+                0 10px 35px
+                rgba(0, 0, 0, 0.15);
         }
 
-        h1 {
+
+        .icon {
+
+            font-size: 65px;
+
             margin-bottom: 10px;
         }
 
-        p {
-            color: #666;
-            margin-bottom: 30px;
+
+        h1 {
+
+            margin: 0;
+
+            font-size: 30px;
+
+            color: #1f2937;
         }
 
-        .btn {
-            display: inline-block;
 
-            padding: 15px 35px;
+        .subtitle {
+
+            margin-top: 10px;
+
+            margin-bottom: 30px;
+
+            color: #6b7280;
+
+            font-size: 16px;
+        }
+
+
+        .btn {
+
+            display: block;
+
+            width: 100%;
+
+            padding: 16px;
 
             background: #1677ff;
+
             color: white;
 
             text-decoration: none;
 
+            border: none;
+
             border-radius: 10px;
 
             font-size: 18px;
+
             font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.2s;
         }
 
+
         .btn:hover {
+
             background: #0958d9;
+
+            transform: translateY(-1px);
         }
+
+
+        .btn:active {
+
+            transform: translateY(0);
+        }
+
+
+        .status {
+
+            margin-top: 20px;
+
+            padding: 12px;
+
+            border-radius: 8px;
+
+            background: #f3f4f6;
+
+            color: #6b7280;
+
+            font-size: 14px;
+        }
+
+
+        .url {
+
+            margin-top: 12px;
+
+            font-size: 12px;
+
+            color: #9ca3af;
+
+            word-break: break-all;
+        }
+
+
+        .footer {
+
+            margin-top: 25px;
+
+            font-size: 12px;
+
+            color: #9ca3af;
+        }
+
     </style>
+
 </head>
+
 
 <body>
 
+
 <div class="container">
 
-    <h1>📦 QUẢN LÝ KHO</h1>
 
-    <p>Hệ thống quản lý phụ tùng</p>
+    <div class="icon">
+        📦
+    </div>
+
+
+    <h1>
+        QUẢN LÝ KHO
+    </h1>
+
+
+    <div class="subtitle">
+        Hệ thống quản lý phụ tùng
+    </div>
+
 
     <a
+        id="btnVaoHeThong"
         class="btn"
-        href="https://trivia-lexmark-seminar-attorneys.trycloudflare.com"
-        target="_blank">
-
+        href="#"
+        onclick="vaoHeThong(event); return false;"
+    >
         🚀 VÀO HỆ THỐNG
-
     </a>
+
+
+    <div
+        id="status"
+        class="status"
+    >
+        🔄 Đang chờ kết nối...
+    </div>
+
+
+    <div
+        id="url"
+        class="url"
+    >
+    </div>
+
+
+    <div class="footer">
+        © 2026 Hệ thống quản lý kho
+    </div>
+
 
 </div>
 
+
+<script>
+
+
+// =====================================================
+// HÀM LẤY URL CLOUDFLARE TỪ url.txt
+// =====================================================
+
+async function layUrlCloudflare() {
+
+
+    try {
+
+
+        const response = await fetch(
+
+            "./url.txt?t=" +
+            Date.now(),
+
+            {
+                cache: "no-store"
+            }
+
+        );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Không đọc được url.txt - HTTP " +
+                response.status
+            );
+
+        }
+
+
+        const url =
+            (await response.text()).trim();
+
+
+        if (!url) {
+
+            throw new Error(
+                "url.txt đang trống"
+            );
+
+        }
+
+
+        if (
+            !url.startsWith(
+                "https://"
+            )
+        ) {
+
+            throw new Error(
+                "URL Cloudflare không hợp lệ"
+            );
+
+        }
+
+
+        return url;
+
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Lỗi lấy URL:",
+            error
+        );
+
+        throw error;
+
+    }
+
+}
+
+
+
+// =====================================================
+// NÚT VÀO HỆ THỐNG
+// =====================================================
+
+async function vaoHeThong(event) {
+
+
+    if (event) {
+
+        event.preventDefault();
+
+    }
+
+
+    const status =
+        document.getElementById(
+            "status"
+        );
+
+
+    const urlDisplay =
+        document.getElementById(
+            "url"
+        );
+
+
+    const button =
+        document.getElementById(
+            "btnVaoHeThong"
+        );
+
+
+    // -------------------------------------------------
+    // ĐANG KẾT NỐI
+    // -------------------------------------------------
+
+    status.innerHTML =
+        "🔄 Đang lấy địa chỉ hệ thống...";
+
+
+    button.style.pointerEvents =
+        "none";
+
+
+    try {
+
+
+        // Lấy URL mới nhất
+
+        const url =
+            await layUrlCloudflare();
+
+
+        console.log(
+            "Cloudflare URL:",
+            url
+        );
+
+
+        // Hiển thị URL
+
+        urlDisplay.textContent =
+            url;
+
+
+        // -------------------------------------------------
+        // KIỂM TRA URL
+        // -------------------------------------------------
+
+        status.innerHTML =
+            "✅ Đã lấy được địa chỉ hệ thống";
+
+
+        // -------------------------------------------------
+        // MỞ NODE-RED
+        // -------------------------------------------------
+
+        window.location.href =
+            url;
+
+
+    }
+
+    catch (error) {
+
+
+        console.error(
+            error
+        );
+
+
+        status.innerHTML =
+            "❌ Không lấy được địa chỉ hệ thống";
+
+
+        urlDisplay.textContent =
+            "";
+
+
+        alert(
+
+            "❌ KHÔNG THỂ VÀO HỆ THỐNG\n\n" +
+
+            error.message +
+
+            "\n\n" +
+
+            "Hãy kiểm tra:\n" +
+
+            "1. File url.txt có tồn tại không\n" +
+
+            "2. url.txt có chứa URL Cloudflare không\n" +
+
+            "3. Cloudflare Quick Tunnel đã chạy chưa"
+
+        );
+
+    }
+
+    finally {
+
+
+        button.style.pointerEvents =
+            "auto";
+
+    }
+
+}
+
+
+
+// =====================================================
+// KIỂM TRA url.txt KHI MỞ TRANG
+// =====================================================
+
+async function kiemTraTrang() {
+
+
+    const status =
+        document.getElementById(
+            "status"
+        );
+
+
+    try {
+
+
+        const url =
+            await layUrlCloudflare();
+
+
+        console.log(
+            "URL Cloudflare hiện tại:",
+            url
+        );
+
+
+        status.innerHTML =
+            "🟢 Hệ thống sẵn sàng";
+
+
+    }
+
+    catch (error) {
+
+
+        console.warn(
+            "Chưa lấy được URL Cloudflare:",
+            error
+        );
+
+
+        status.innerHTML =
+            "🟡 Chưa có địa chỉ Cloudflare";
+
+
+    }
+
+}
+
+
+
+// =====================================================
+// CHẠY KHI MỞ TRANG
+// =====================================================
+
+window.addEventListener(
+    "load",
+    kiemTraTrang
+);
+
+
+</script>
+
+
 </body>
+
 </html>
